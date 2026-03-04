@@ -1,0 +1,23 @@
+{
+  "name": "ellora-tours-backend",
+  "version": "1.0.0",
+  "description": "Backend for Ellora Tours & Travels",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev": "nodemon backend/server.js"
+  },
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "mongoose": "^9.1.3",
+    "msg91-node-v2": "^1.0.0",
+    "nodemailer": "^6.9.3"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22",
+    "msg91-node-v2": "^1.0.0"
+  }
+}
