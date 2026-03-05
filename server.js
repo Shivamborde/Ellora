@@ -16,10 +16,22 @@ console.log('='.repeat(70));
 const app = express();
 
 // Middleware
-app.use(cors({
-    origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'https://ellora-tours.netlify.app'],
-    credentials: true
-}));
+const corsOptions = {
+    origin: [
+        'http://localhost:3000',
+        'http://127.0.0.1:3000',
+        'https://ellora-tours.netlify.app'  // ← YOUR NETLIFY URL HERE
+    ],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+};
+
+app.use(cors(corsOptions));
+
+// Handle preflight requests (important for browsers)
+app.options('*', cors(corsOptions));
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -575,3 +587,4 @@ process.on('SIGINT', async () => {
     process.exit(0);
 
 });
+
