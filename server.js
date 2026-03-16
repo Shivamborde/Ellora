@@ -579,7 +579,7 @@ mongoose.connection.on('error', (err) => {
     console.error('\n❌ MONGODB ERROR:', err.message);
 });
 
-// Handle server shutdown
+// Handle server shutdown   
 process.on('SIGINT', async () => {
     console.log('\n👋 Shutting down server...');
     await mongoose.connection.close();
@@ -588,3 +588,9 @@ process.on('SIGINT', async () => {
 
 });
 
+
+// Add this with your other requires
+const paymentRoutes = require('./routes/paymentRoutes');
+
+// Add this with your other app.use() statements (after CORS, before your routes)
+app.use('/api', paymentRoutes);
