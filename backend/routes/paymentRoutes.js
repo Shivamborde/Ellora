@@ -10,21 +10,26 @@ const razorpay = new Razorpay({
     key_secret: process.env.RAZORPAY_KEY_SECRET
 });
 
-// 1. Create Order
+// ========================
+// CREATE ORDER ENDPOINT
+// ========================
 router.post('/create-order', async (req, res) => {
     try {
         const { amount, bookingDetails } = req.body;
+        
+        console.log('📦 Creating Razorpay order for amount:', amount);
 
         const options = {
-            amount: amount * 100, // Razorpay uses paise
+            amount: amount * 100, // Convert to paise
             currency: 'INR',
             receipt: `receipt_${Date.now()}`,
             notes: bookingDetails
         };
 
         const order = await razorpay.orders.create(options);
+        console.log('✅ Order created:', order.id);
 
-        // Save order in DB
+        // Save payment record in database
         const payment = new Payment({
             razorpayOrderId: order.id,
             amount: amount,
@@ -44,12 +49,17 @@ router.post('/create-order', async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Order creation failed:', error);
-        res.status(500).json({ success: false, error: error.message });
+        console.error('❌ Order creation failed:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: error.message 
+        });
     }
 });
 
-// 2. Verify Payment
+// ========================
+// VERIFY PAYMENT ENDPOINT
+// ========================
 router.post('/verify-payment', async (req, res) => {
     try {
         const {
@@ -58,6 +68,8 @@ router.post('/verify-payment', async (req, res) => {
             razorpay_signature,
             bookingDetails
         } = req.body;
+
+        console.log('🔍 Verifying payment:', razorpay_order_id);
 
         // Generate signature for verification
         const body = razorpay_order_id + "|" + razorpay_payment_id;
@@ -81,20 +93,55 @@ router.post('/verify-payment', async (req, res) => {
                 { new: true }
             );
 
-            // Here you can also save the booking to your main collection
-            // You already have a similar structure in your server.js
+            console.log('✅ Payment verified successfully');
 
-            res.json({
-                success: true,
+            res.json({ 
+                success: true, 
                 message: 'Payment verified successfully',
                 paymentId: payment?._id
             });
         } else {
-            res.status(400).json({ success: false, error: 'Invalid signature' });
+            console.error('❌ Invalid signature');
+            res.status(400).json({ 
+                success: false, 
+                error: 'Invalid signature' 
+            });
         }
     } catch (error) {
-        console.error('Verification failed:', error);
-        res.status(500).json({ success: false, error: error.message });
+        console.error('❌ Verification failed:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: error.message 
+        });
+    }
+});
+
+// ========================
+// GET PAYMENT STATUS
+// ========================
+router.get('/payment-status/:orderId', async (req, res) => {
+    try {
+        const payment = await Payment.findOne({ 
+            razorpayOrderId: req.params.orderId 
+        });
+        
+        if (payment) {
+            res.json({
+                success: true,
+                status: payment.status,
+                payment: payment
+            });
+        } else {
+            res.status(404).json({
+                success: false,
+                error: 'Payment not found'
+            });
+        }
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
     }
 });
 
